@@ -1,0 +1,11 @@
+fastapi
+dotenv
+redis
+httpx
+aiohttp
+bs4
+transformers
+requests
+newspaper3k
+torch
+apscheduler
