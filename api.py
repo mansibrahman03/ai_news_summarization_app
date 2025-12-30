@@ -59,18 +59,18 @@ async def lifespan(app: FastAPI):
             await redis_client.set(category, data_str, ex=86400)
     print(f"[{datetime.now()}] Initial cache populated!")
     
-    # Schedule background refresh to run 1 minute before every hour (at :59)
+    # Schedule background refresh to run 1 minute before every hour (at :58)
     scheduler.add_job(
         refresh_all_news_cache,
         'cron',
-        minute=59,  # Runs at :59 of every hour
+        minute=58,  # Runs at :58 of every hour
         args=[redis_client],
         id='news_refresh_job'
     )
     
     # Start the scheduler
     scheduler.start()
-    print(f"[{datetime.now()}] Background scheduler started! Will refresh at :59 of every hour.")
+    print(f"[{datetime.now()}] Background scheduler started! Will refresh at :58 of every hour.")
     
     yield
     
