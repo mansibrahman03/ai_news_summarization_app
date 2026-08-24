@@ -1,11 +1,19 @@
-fastapi
-dotenv
-redis
-httpx
-aiohttp
-bs4
-transformers
-requests
-newspaper3k
-torch
-apscheduler
+# NOTE: torch is installed separately in the Dockerfile from PyTorch's CPU-only
+# index. The default PyPI wheel bundles CUDA and is ~2.5GB, which blows the
+# build disk/time limit on most hosts.
+
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+python-dotenv==1.0.1
+redis==5.2.1
+httpx==0.28.1
+aiohttp==3.11.11
+beautifulsoup4==4.12.3
+requests==2.32.3
+apscheduler==3.11.0
+transformers==4.48.0
+newspaper3k==0.2.8
+lxml==5.3.0
+# newspaper3k imports lxml.html.clean, which lxml 5.x split into its own package
+lxml_html_clean==0.4.1
+nltk==3.9.1

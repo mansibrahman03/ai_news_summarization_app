@@ -1,0 +1,36 @@
+.git
+.gitignore
+.dockerignore
+
+# Local envs / caches
+.venv
+venv
+env
+ENV
+__pycache__
+**/__pycache__
+*.py[cod]
+.expo
+
+# Secrets — these belong in the host's environment settings, not the image
+.env
+*.env
+
+# Frontend and mobile are deployed separately; the API doesn't serve them
+frontend
+mobile
+node_modules
+**/node_modules
+package.json
+package-lock.json
+tsconfig.json
+
+# Local scratch
+dump.rdb
+thread
+thread.c
+Makefile
+.DS_Store
+**/.DS_Store
+.vscode
+.idea
