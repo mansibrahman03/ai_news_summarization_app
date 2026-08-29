@@ -1,18 +1,15 @@
 import requests
 from newspaper import Article, Config
-from transformers.utils.logging import set_verbosity_error
 from dotenv import load_dotenv
 import os
 
-from summarizer import get_summarizer
-
-
-set_verbosity_error()
+from summarizer import summarize
 
 
 MAX_ENTRIES = 3
-MINIMUM_SUMMARY_LENGTH = 130
-MAXIMUM_SUMMARY_LENGTH = 200
+# Cap the text sent per article. ~1024 chars is ~256 tokens, which keeps a
+# 21-summary refresh near 76K tokens/day against Groq's 200K/day free cap.
+MAX_ARTICLE_CHARS = int(os.getenv('MAX_ARTICLE_CHARS', '1024'))
 
 # newspaper3k's default user-agent gets 403'd by a lot of publishers.
 article_config = Config()
@@ -66,25 +63,20 @@ def fetch_article_data(DATA):
     return article_data
 
 
-def summarize_article(article_text):
-    summarizer = get_summarizer()
-    return summarizer(
-        article_text,
-        max_length=MAXIMUM_SUMMARY_LENGTH,
-        min_length=MINIMUM_SUMMARY_LENGTH,
-        do_sample=False,
-    )
-
-
 def get_summaries(ARTICLE_CONTENTS):
     summaries = []
     for title, data in ARTICLE_CONTENTS.items():
-        content = data['text'][:1024]
+        content = data['text'][:MAX_ARTICLE_CHARS]
         if not content.strip():
+            continue
+        try:
+            summary_text = summarize(content)
+        except Exception as e:
+            print(f'Could not summarize Article: {title}. Error {e}')
             continue
         summaries.append({
             'title': title,
-            'summary': summarize_article(content)[0]['summary_text'],
+            'summary': summary_text,
             'author': data['author'],
             'source': data['source'],
             'image': data['image'],

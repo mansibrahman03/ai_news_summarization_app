@@ -17,6 +17,12 @@ API_KEY = os.getenv('NEWS_API_KEY')
 DEFAULT_KEY = "Today's Top Headlines"
 CACHE_TTL = 86400
 
+# Refresh every N hours. At 3h this is 8 runs/day = 56 NewsAPI calls and 168
+# summaries, which stays inside NewsAPI's 100 req/day free cap. Raising the
+# frequency will blow that cap — see the comment on CACHE_TTL above: the 24h TTL
+# means a stale-but-good cache survives a failed refresh either way.
+REFRESH_INTERVAL_HOURS = int(os.getenv('REFRESH_INTERVAL_HOURS', '3'))
+
 # "*" with allow_credentials=True is rejected by browsers; set CORS_ORIGINS in
 # the environment (comma-separated) once you know your frontend's origin.
 CORS_ORIGINS = [o.strip() for o in os.getenv('CORS_ORIGINS', '*').split(',') if o.strip()]
@@ -76,13 +82,17 @@ async def lifespan(app: FastAPI):
     scheduler.add_job(
         refresh_all_news_cache,
         'cron',
-        minute=58,  # Runs at :58 of every hour
+        hour=f'*/{REFRESH_INTERVAL_HOURS}',
+        minute=58,  # e.g. every 3h -> 00:58, 03:58, 06:58, ... 21:58
         args=[app.state.redis],
         id='news_refresh_job',
         replace_existing=True,
     )
     scheduler.start()
-    print(f'[{datetime.now()}] Background scheduler started! Will refresh at :58 of every hour.')
+    print(
+        f'[{datetime.now()}] Background scheduler started! '
+        f'Will refresh at :58 every {REFRESH_INTERVAL_HOURS}h.'
+    )
 
     yield
 

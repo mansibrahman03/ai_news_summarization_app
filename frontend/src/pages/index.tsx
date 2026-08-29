@@ -7,7 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 
 const Index = () => {
   const [activeCategory, setActiveCategory] = useState('Breaking News');
-  const { news, loading, error } = useNews(activeCategory);
+  const { news, loading, waking, error } = useNews(activeCategory);
   const { toast } = useToast();
 
   const handleCategoryClick = (category: string) => {
@@ -56,7 +56,7 @@ const Index = () => {
       
       <main className="container mx-auto px-4 py-6">
         {loading ? (
-          <LoadingSpinner />
+          <LoadingSpinner waking={waking} />
         ) : articles.length > 0 ? (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">

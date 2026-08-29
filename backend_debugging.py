@@ -4,9 +4,8 @@ import time
 import os
 import aiohttp
 from bs4 import BeautifulSoup
-from concurrent.futures import ThreadPoolExecutor
 
-from summarizer import get_summarizer
+from summarizer import summarize_async
 
 
 load_dotenv()
@@ -16,8 +15,8 @@ category_queues = {category: asyncio.Queue() for category in categories}
 producers = {f'Producer-{category}': category for category in categories}
 consumers = {f'Consumer-{category}': category for category in categories}
 MAX_ENTRIES = 3
-MINIMUM_SUMMARY_LENGTH = 130
-MAXIMUM_SUMMARY_LENGTH = 200
+# See backend_sync.MAX_ARTICLE_CHARS — caps tokens sent per article.
+MAX_ARTICLE_CHARS = int(os.getenv('MAX_ARTICLE_CHARS', '1024'))
 all_summaries = {}
 lock = asyncio.Lock()
 
@@ -80,36 +79,21 @@ async def fetch_article_data(DATA):
     return article_data
 
 
-executor = ThreadPoolExecutor(max_workers=2)
-summarize_semaphore = asyncio.Semaphore(2)
-
-
-def summarize_article(article_text):
-    summarizer = get_summarizer()
-    return summarizer(
-        article_text,
-        max_length=MAXIMUM_SUMMARY_LENGTH,
-        min_length=MINIMUM_SUMMARY_LENGTH,
-        do_sample=False,
-    )
-
-
-async def summarize_article_async(article_text):
-    async with summarize_semaphore:
-        loop = asyncio.get_running_loop()
-        summary_info = await loop.run_in_executor(executor, summarize_article, article_text)
-        return summary_info[0]['summary_text']
-
-
 async def get_summaries(ARTICLE_CONTENTS):
     summaries = []
     for title, data in ARTICLE_CONTENTS.items():
-        content = data['text'][:1024]
+        content = data['text'][:MAX_ARTICLE_CHARS]
         if not content.strip():
+            continue
+        try:
+            summary_text = await summarize_async(content)
+        except Exception as e:
+            # One bad article shouldn't sink the whole category.
+            print(f'Could not summarize Article: {title}. Error {e}')
             continue
         summaries.append({
             'title': title,
-            'summary': await summarize_article_async(content),
+            'summary': summary_text,
             'author': data['author'],
             'source': data['source'],
             'image': data['image'],

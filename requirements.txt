@@ -1,7 +1,3 @@
-# NOTE: torch is installed separately in the Dockerfile from PyTorch's CPU-only
-# index. The default PyPI wheel bundles CUDA and is ~2.5GB, which blows the
-# build disk/time limit on most hosts.
-
 fastapi==0.115.6
 uvicorn[standard]==0.34.0
 python-dotenv==1.0.1
@@ -11,7 +7,9 @@ aiohttp==3.11.11
 beautifulsoup4==4.12.3
 requests==2.32.3
 apscheduler==3.11.0
-transformers==4.48.0
+# Summarization runs on Groq's hosted inference — no torch/transformers, which
+# is what keeps this deployable on a 512MB free-tier container.
+groq==1.7.0
 newspaper3k==0.2.8
 lxml==5.3.0
 # newspaper3k imports lxml.html.clean, which lxml 5.x split into its own package

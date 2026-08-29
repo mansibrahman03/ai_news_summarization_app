@@ -3,16 +3,7 @@ FROM python:3.11-slim
 WORKDIR /app
 
 ENV PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1 \
-    HF_HOME=/app/.hf_cache
-
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc \
-    && rm -rf /var/lib/apt/lists/*
-
-# CPU-only torch. The default PyPI wheel pulls in CUDA (~2.5GB) that this image
-# can never use. Installed before requirements.txt so it stays cached.
-RUN pip install --no-cache-dir torch==2.5.1 --index-url https://download.pytorch.org/whl/cpu
+    PIP_NO_CACHE_DIR=1
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
