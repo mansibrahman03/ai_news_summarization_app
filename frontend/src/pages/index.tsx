@@ -62,7 +62,6 @@ const Index = () => {
               {mainArticle && (
                 <ArticleCard
                   {...mainArticle}
-                  category={activeCategory}
                   isMainArticle={true}
                   className="h-full"
                 />
@@ -80,7 +79,6 @@ const Index = () => {
                 <ArticleCard
                   key={index}
                   {...article}
-                  category={index === 0 ? activeCategory : undefined}
                 />
               ))}
               

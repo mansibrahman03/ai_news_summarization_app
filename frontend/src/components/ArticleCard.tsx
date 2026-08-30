@@ -1,11 +1,9 @@
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Clock } from 'lucide-react';
 
 interface ArticleCardProps {
   title: string;
   summary: string;
-  category?: string;
   imageUrl?: string;
   timeAgo?: string;
   isMainArticle?: boolean;
@@ -15,7 +13,6 @@ interface ArticleCardProps {
 const ArticleCard = ({ 
   title, 
   summary, 
-  category, 
   imageUrl, 
   timeAgo,
   isMainArticle = false,
@@ -35,28 +32,11 @@ const ArticleCard = ({
                 isMainArticle ? 'h-64 md:h-80' : 'h-48'
               }`}
             />
-            {category && (
-              <Badge 
-                variant="destructive" 
-                className="absolute top-3 left-3 bg-news-red text-news-red-foreground"
-              >
-                {category}
-              </Badge>
-            )}
             <div className="absolute inset-0 bg-[var(--gradient-hero)]" />
           </div>
         )}
         
         <div className={`p-4 ${isMainArticle ? 'md:p-6' : ''}`}>
-          {!imageUrl && category && (
-            <Badge 
-              variant="destructive" 
-              className="mb-3 bg-news-red text-news-red-foreground"
-            >
-              {category}
-            </Badge>
-          )}
-          
           <h2 className={`font-bold text-headline-major group-hover:text-primary transition-colors leading-tight mb-3 ${
             isMainArticle ? 'text-xl md:text-2xl' : 'text-lg'
           }`}>
