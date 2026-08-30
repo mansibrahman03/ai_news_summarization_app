@@ -29,7 +29,15 @@ BROWSER_HEADERS = {
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
     'Accept-Language': 'en-US,en;q=0.9',
 }
-REQUEST_TIMEOUT = aiohttp.ClientTimeout(total=20)
+# Articles are fetched one at a time, so the per-article timeout multiplies into
+# the producer budget below. Some publishers (WaPo especially) hang until the
+# timeout on every attempt, so keep this short — failing fast on a paywalled
+# article leaves budget to try the next candidate.
+NEWSAPI_TIMEOUT = aiohttp.ClientTimeout(total=15)
+ARTICLE_TIMEOUT = aiohttp.ClientTimeout(total=8)
+# Must comfortably exceed ARTICLE_TIMEOUT x the number of articles we may have to
+# skip before finding MAX_ENTRIES that parse.
+PRODUCER_TIMEOUT = int(os.getenv('PRODUCER_TIMEOUT', '90'))
 
 
 async def get_article_contents(category):
@@ -37,7 +45,7 @@ async def get_article_contents(category):
         url = f'https://newsapi.org/v2/top-headlines?country=us&apiKey={api_key}'
     else:
         url = f'https://newsapi.org/v2/top-headlines?category={category}&apiKey={api_key}'
-    async with aiohttp.ClientSession(timeout=REQUEST_TIMEOUT) as session:
+    async with aiohttp.ClientSession(timeout=NEWSAPI_TIMEOUT) as session:
         async with session.get(url) as response:
             data = await response.json()
     return await fetch_article_data(data)
@@ -51,7 +59,7 @@ async def fetch_article_data(DATA):
         # NewsAPI returns {'status': 'error', 'message': ...} on a bad or missing key.
         print(f"NewsAPI returned no articles: {DATA.get('message', DATA)}")
         return article_data
-    async with aiohttp.ClientSession(timeout=REQUEST_TIMEOUT, headers=BROWSER_HEADERS) as session:
+    async with aiohttp.ClientSession(timeout=ARTICLE_TIMEOUT, headers=BROWSER_HEADERS) as session:
         for article in articles:
             if download_successes >= MAX_ENTRIES:
                 break
@@ -101,7 +109,8 @@ async def get_summaries(ARTICLE_CONTENTS):
     return summaries
 
 
-async def produce(name, category, timeout=40):
+async def produce(name, category, timeout=None):
+    timeout = PRODUCER_TIMEOUT if timeout is None else timeout
     print(f'{name}: Starting fetch...')
     start_time = time.time()
     try:
