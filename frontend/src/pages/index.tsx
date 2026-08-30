@@ -5,25 +5,6 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 import { useNews } from '@/hooks/useNews';
 import { useToast } from '@/hooks/use-toast';
 
-// Derives the label from the article's real publication time. Anything cached
-// before the backend started sending published_at yields null, so the caller
-// omits the field rather than inventing a value.
-const formatTimeAgo = (publishedAt?: string | null): string | undefined => {
-  if (!publishedAt) return undefined;
-  const then = new Date(publishedAt).getTime();
-  if (Number.isNaN(then)) return undefined;
-
-  const minutes = Math.floor((Date.now() - then) / 60000);
-  if (minutes < 1) return 'JUST NOW';
-  if (minutes < 60) return `${minutes}M AGO`;
-
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}H AGO`;
-
-  const days = Math.floor(hours / 24);
-  return `${days}D AGO`;
-};
-
 const Index = () => {
   const [activeCategory, setActiveCategory] = useState('Breaking News');
   const { news, loading, waking, error } = useNews(activeCategory);
@@ -56,7 +37,6 @@ const Index = () => {
       title: article.title,
       summary: article.summary,
       imageUrl: article.image,
-      timeAgo: formatTimeAgo(article.published_at),
       source: article.source,
       author: article.author
     }));
