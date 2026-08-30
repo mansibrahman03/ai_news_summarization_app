@@ -47,6 +47,7 @@ def fetch_article_data(DATA):
         article_author = article['author']
         article_source = article['source']['name']
         article_image = article['urlToImage']
+        article_published = article.get('publishedAt')
         try:
             art = Article(article_url, config=article_config)
             art.download()
@@ -56,6 +57,7 @@ def fetch_article_data(DATA):
                 'author': article_author,
                 'source': article_source,
                 'image': article_image,
+                'published_at': article_published,
             }
             download_successes += 1
         except Exception as e:
@@ -80,6 +82,7 @@ def get_summaries(ARTICLE_CONTENTS):
             'author': data['author'],
             'source': data['source'],
             'image': data['image'],
+            'published_at': data.get('published_at'),
         })
     return summaries
 

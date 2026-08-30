@@ -11,6 +11,7 @@ interface Article {
   image: string;
   source: string;
   author: string | null;
+  published_at?: string | null;
 }
 
 interface NewsData {

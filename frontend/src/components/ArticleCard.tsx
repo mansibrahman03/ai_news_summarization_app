@@ -17,7 +17,7 @@ const ArticleCard = ({
   summary, 
   category, 
   imageUrl, 
-  timeAgo = "30M AGO", 
+  timeAgo,
   isMainArticle = false,
   className = ""
 }: ArticleCardProps) => {
@@ -69,10 +69,12 @@ const ArticleCard = ({
             {summary}
           </p>
           
-          <div className="flex items-center text-text-meta text-sm">
-            <Clock className="h-4 w-4 mr-1" />
-            <span className="uppercase tracking-wide">{timeAgo}</span>
-          </div>
+          {timeAgo && (
+            <div className="flex items-center text-text-meta text-sm">
+              <Clock className="h-4 w-4 mr-1" />
+              <span className="uppercase tracking-wide">{timeAgo}</span>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
